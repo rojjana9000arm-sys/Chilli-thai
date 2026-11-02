@@ -1,6 +1,6 @@
 -- ==========================================
--- 🌶️ Chilli Hub V8 - Thai Translator
--- Version : 1.0 (Complete)
+-- 🌶️ Chilli Hub V8 - Thai Translator (Fixed Timing)
+-- แปลไทยโดย : nookky_ 👑
 -- ==========================================
 
 local GuiService = gethui and gethui() or game:GetService("CoreGui")
@@ -74,13 +74,46 @@ local dict = {
     ["GROWING"] = "กำลังโต",
     ["IN BAG"] = "ในกระเป๋า",
     ["Value"] = "💰 มูลค่า",
+    ["Walk"] = "🚶 เดิน",
+    
+    -- 🗺️ โซนแผนที่ (จากรูปที่ 2)
+    ["Pick any"] = "📍 เลือกทั้งหมด",
+    ["Enchanted Forest"] = "🌳 ป่าต้องสาป",
+    ["Light Dark"] = "🌓 สว่าง/มืด",
+    ["Titan Temple"] = "🏛️ วิหารไททัน",
+    ["Cherry Blossom"] = "🌸 ซากุระ",
+    ["Prehistoric"] = "🦖 ยุคก่อนประวัติศาสตร์",
+    ["Abyss Ocean"] = "🌊 มหาสมุทรลึก",
+    ["Volcano"] = "🌋 ภูเขาไฟ",
+    ["Snow"] = "❄️ หิมะ",
+    ["Jungle"] = "🌴 ป่าดงดิบ",
+    ["Desert"] = "🏜️ ทะเลทราย",
+    ["Lake"] = "🏞️ ทะเลสาบ",
+    ["Clear"] = "🧹 ล้าง",
+    ["Select all"] = "✅ เลือกทั้งหมด",
+    ["Cosmic"] = "🌌 คอสมิก",
 
-    -- 🎁 Event (กิจกรรม)
+    -- 👽 กิจกรรม UFO (จากรูปที่ 1)
     ["Event"] = "🎁 กิจกรรม",
-    ["Halloween & Star"] = "🎃 ฮาโลวีน & ดาว",
+    ["UFO"] = "🛸 UFO",
+    ["UFO SIGHTINGS"] = "👽 การพบเห็น UFO",
+    ["Auto UFO"] = "👽 UFO อัตโนมัติ",
+    ["Collect UFO debris"] = "🛸 เก็บเศษซาก UFO",
+    ["Enter rare UFO"] = "🚪 เข้า UFO หายาก",
+    ["Auto trade debris"] = "🔄 แลกเศษซากอัตโนมัติ",
+    ["UFO move to egg"] = "🚶 UFO เดินไปที่ไข่",
+    ["UFO delivery"] = "🚚 UFO ขนส่ง",
+    ["UFO STATUS"] = "📋 สถานะ UFO",
+    ["Off"] = "ปิด",
+    ["DEBRIS"] = "🛸 เศษซาก",
+    ["STAR & HOLLOW"] = "⭐ ดาว & โพรง",
     ["The Hollow"] = "🕳️ The Hollow",
+    ["Shooting Star"] = "🌠 ดาวตก",
+
+    -- 🎁 Event อื่นๆ
+    ["Halloween & Star"] = "🎃 ฮาโลวีน & ดาว",
     ["Butterfly"] = "🦋 ผีเสื้อ",
-    ["AA (Admin Abuse)"] = "👑 AA (แอดมิน)",
+    ["AA"] = "👑 AA (แอดมิน)",
     ["HALLOWEEN DIMENSION"] = "🎃 มิติฮาโลวีน",
     ["Auto steal Halloween eggs"] = "⚡ ขโมยไข่ฮาโลวีนอัตโนมัติ",
     ["Instant steal Halloween eggs"] = "⚡ ขโมยไข่ฮาโลวีนทันที",
@@ -143,7 +176,6 @@ local dict = {
     ["Fuse"] = "🔧 ผสม",
     ["Priority"] = "🎯 ลำดับความสำคัญ",
     ["AUTO PLACE"] = "📍 วางอัตโนมัติ",
-    ["Pen 1/30 - 0 egg(s) ready to place"] = "คอก 1/30 - ไข่พร้อมวาง 0 ฟอง",
     ["Auto place"] = "📍 วางอัตโนมัติ",
     ["Place when"] = "⏱️ วางเมื่อ",
     ["Place first"] = "🥇 วางลำดับแรก",
@@ -202,7 +234,6 @@ local dict = {
     ["NEXT 2"] = "⏭️ ถัดไป 2",
     ["NEXT 3"] = "⏭️ ถัดไป 3",
     ["Steal filter eggs"] = "🥚 ขโมยไข่ตามตัวกรอง",
-    ["Shooting Star"] = "🌠 ดาวตก",
     ["Phantom Express"] = "🚂 รถไฟผี",
     ["PRIORITY ROTATION"] = "🔄 หมุนเวียนลำดับความสำคัญ",
     ["NOW"] = "📍 ตอนนี้",
@@ -298,7 +329,6 @@ local dict = {
     ["Keybinds"] = "⌨️ ปุ่มลัด",
     ["Bar size"] = "📏 ขนาดแถบ",
     ["PINS AND KEYBINDS"] = "📌 ปักหมุดและปุ่มลัด",
-    ["Tip: you can also hold any feature, or right-click it on PC, to pin it or set a key."] = "เคล็ดลับ: คุณสามารถกดค้างที่ฟีเจอร์ใดก็ได้ หรือคลิกขวาบน PC เพื่อปักหมุดหรือตั้งค่าปุ่ม",
     ["Find an option"] = "🔎 ค้นหาตัวเลือก",
     ["All"] = "ทั้งหมด",
     ["Pinned"] = "📌 ปักหมุด",
@@ -335,7 +365,6 @@ local dict = {
     ["Epic"] = "🟣 อีปิค",
     ["Legendary"] = "🟠 ตำนาน",
     ["Mythic"] = "🔴 มิธิค",
-    ["Cosmic"] = "🌌 คอสมิก",
     ["Secret"] = "🔮 ลับ",
     ["Eternal"] = "♾️ นิรันดร์",
     ["Divine"] = "✨ ศักดิ์สิทธิ์",
@@ -351,39 +380,25 @@ for key, value in pairs(dict) do
 end
 
 -- ==========================================
--- 3. DYNAMIC TEXT (ข้อความที่เปลี่ยนตามเวลา/ตัวเลข)
+-- 3. ฟังก์ชันแปลภาษา (Dynamic & Static)
 -- ==========================================
 local function translateDynamicText(txt)
     local newTxt = txt
-
-    -- ตัวเลขและตัวอักษรที่ตามหลัง
     newTxt = newTxt:gsub("^(%d+)%s+pets", "%1 ตัว")
     newTxt = newTxt:gsub("^(%d+)%s+eggs", "%1 ไข่")
     newTxt = newTxt:gsub("^(%d+)m%s+(%d+)s", "%1 นาที %2 วินาที")
-    newTxt = newTxt:gsub("(%d+)m%s+(%d+)s", "%1 นาที %2 วินาที")
     newTxt = newTxt:gsub("in (%d+)m", "ในอีก %1 นาที")
-    newTxt = newTxt:gsub("in (%d+)h (%d+)m", "ในอีก %1 ชม. %2 นาที")
-    
-    -- จัดการกับตัวเลขเงิน เช่น $198B/s
     newTxt = newTxt:gsub("^(%$[%d%.]+[BMTK]?/s)$", "💰 %1")
-    
-    -- จัดการกับตัวเลขในแท็บ Egg Predictor (ALL 20, READY 0, GROWING 1, IN BAG 19)
     newTxt = newTxt:gsub("^ALL%s+(%d+)", "ทั้งหมด %1")
     newTxt = newTxt:gsub("^READY%s+(%d+)", "พร้อม %1")
     newTxt = newTxt:gsub("^GROWING%s+(%d+)", "กำลังโต %1")
     newTxt = newTxt:gsub("^IN BAG%s+(%d+)", "ในกระเป๋า %1")
-
     return newTxt
 end
 
--- ==========================================
--- 4. TRANSLATE OBJECT
--- ==========================================
 local function translateText(obj)
     pcall(function()
-        if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
-            return
-        end
+        if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
 
         local currentText = obj.Text
         local dynamicText = translateDynamicText(currentText)
@@ -414,22 +429,13 @@ local function translateText(obj)
     end)
 end
 
--- ==========================================
--- 5. HOOK OBJECT
--- ==========================================
 local function hookObject(obj)
     translateText(obj)
-
     pcall(function()
-        if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
-            return
-        end
+        if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
+        if obj:GetAttribute("Hooked_nookky_") then return end
 
-        if obj:GetAttribute("Hooked_ChilliThai") then
-            return
-        end
-
-        obj:SetAttribute("Hooked_ChilliThai", true)
+        obj:SetAttribute("Hooked_nookky_", true)
         obj:GetPropertyChangedSignal("Text"):Connect(function()
             translateText(obj)
         end)
@@ -443,8 +449,18 @@ local function hookObject(obj)
 end
 
 -- ==========================================
--- 6. SCAN & HOOK UI
+-- 4. ลำดับการทำงาน (โหลด UI ก่อน แล้วค่อยแปล)
 -- ==========================================
+
+-- ขั้นแรก: โหลด Chilli Hub ขึ้นมาก่อนเลย
+task.spawn(function()
+    loadstring(game:HttpGet("https://gist.githubusercontent.com/sourceshubs/6e43ff13469a39993ac1a15ce00fd404/raw/SourcesHub_ChilliHubV8"))()
+end)
+
+-- ขั้นที่สอง: รอให้ UI หลักโหลดเสร็จ (ประมาณ 2 วินาที)
+task.wait(2) 
+
+-- ขั้นที่สาม: สแกน UI ทั้งหมดที่เพิ่งโหลดขึ้นมา แล้วเริ่มดักจับของใหม่
 for _, obj in ipairs(GuiService:GetDescendants()) do
     hookObject(obj)
 end
@@ -454,29 +470,11 @@ GuiService.DescendantAdded:Connect(function(obj)
     hookObject(obj)
 end)
 
--- ==========================================
--- 7. NOTIFICATION
--- ==========================================
+-- แจ้งเตือนตอนโหลดเสร็จ
 pcall(function()
     StarterGui:SetCore("SendNotification", {
-        Title = "🌶️ Chilli Hub V8",
+        Title = "🌶️ nookky_",
         Text = "ระบบแปลภาษาไทยพร้อมใช้งานแล้ว ✅",
         Duration = 5
     })
 end)
-
--- ==========================================
--- 8. LOAD CHILLI HUB (ดึงลิงก์ Raw ของคุณมาใส่แล้ว)
--- ==========================================
-task.wait(0.5) -- รอให้ระบบ Hook ทำงานก่อนสักครู่
-
-local success, err = pcall(function()
-    loadstring(game:HttpGet("https://gist.githubusercontent.com/sourceshubs/6e43ff13469a39993ac1a15ce00fd404/raw/SourcesHub_ChilliHubV8"))()
-end)
-
-if not success then
-    warn("❌ โหลด Chilli Hub ไม่สำเร็จครับ:")
-    warn(err)
-else
-    print("✅ โหลด Chilli Hub สำเร็จครับ")
-end
