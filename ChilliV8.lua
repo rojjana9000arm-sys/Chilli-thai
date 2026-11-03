@@ -1,52 +1,19 @@
 -- ==========================================
 -- 🌶️ Chilli Hub V8 - Ultimate Thai Translator
 -- แปลไทยโดย : nookky_ 👑
--- Version : 2.0 (Zero-Lag + VN Support + Full Dictionary)
+-- Version : 3.0 (Full Dictionary + Zero-Lag + Floating Button)
 -- ==========================================
 
 local GuiService = (gethui and gethui()) or game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 -- ==========================================
--- 1. DICTIONARY (คำศัพท์ทั้งหมด - ENG + VN + TH)
+-- 1. DICTIONARY (คำศัพท์ทั้งหมด ENG + VN)
 -- ==========================================
 local dict = {
     -- 🏠 เมนูหลัก / Dashboard
-    -- ==========================================
-    -- 🔧 คำที่หลุดมา (ภาษาอังกฤษในรูป)
-    -- ==========================================
-    ["Teleport"] = "⚡ วาร์ป",
-    ["Quick steps"] = "👣 ก้าวด่วน",
-    ["Teleport zones"] = "📍 โซนวาร์ป",
-    ["Prehistoric..."] = "🦖 ยุคก่อนประวัติศาสตร์...",
-    ["Best value"] = "💰 มูลค่าสูงสุด",
-    
-    -- หน้าติดดาว (Favorite)
-    ["FAVORITE"] = "⭐ โปรด",
-    ["Auto favorite"] = "❤️ ติดดาวอัตโนมัติ",
-    ["Match"] = "🎯 เงื่อนไข",
-    ["All picked rules"] = "✅ ตรงตามกฎที่เลือกทั้งหมด",
-    ["Always favorite"] = "🌟 ติดดาวเสมอ",
-    ["Favorite equipped"] = "✨ ติดดาวที่ใส่อยู่",
-    ["Unfavorite pets not matching"] = "💔 ยกเลิกติดดาวสัตว์ที่ไม่ตรงเงื่อนไข",
-
-    -- ==========================================
-    -- 🇻🇳 คำเวียดนามที่ยังไม่แปล (จากรูป)
-    -- ==========================================
-    ["Mới"] = "🆕 ใหม่ / ไม่มี",
-    ["Bật"] = "🟢 เปิด",
-    ["Tắt"] = "🔴 ปิด",
-    ["Yêu thích"] = "⭐ โปรด",
-    ["Đáng kể"] = "🔴 มีนัยสำคัญ (ระดับสูง)",
-    ["Đáng sợ"] = "👻 น่ากลัว (ระดับสูงมาก)",
-    
-    -- เมนูด้านบนหน้า Farm (ในรูปที่ 2)
-    ["Chuồng ấp"] = "🏠 คอกสัตว์",
-    ["Máy tập"] = "🏃 ลู่วิ่ง",
-    ["Đột biến"] = "🧬 กลายพันธุ์",
-    ["Bán"] = "💰 ขาย",
-    ["Dung hợp"] = "🔧 ผสม",
-    ["Ưu tiên"] = "🎯 ลำดับความสำคัญ"
     ["Dashboard"] = "🏠 หน้าแรก",
     ["Welcome back"] = "ยินดีต้อนรับกลับมา",
     ["Venyx Discord"] = "ดิสคอร์ด Venyx",
@@ -431,6 +398,24 @@ local dict = {
     ["GOLDEN"] = "🌟 ทอง",
 
     -- ==========================================
+    -- 🔧 คำที่หลุดมา (ภาษาอังกฤษในรูป)
+    -- ==========================================
+    ["Teleport"] = "⚡ วาร์ป",
+    ["Quick steps"] = "👣 ก้าวด่วน",
+    ["Teleport zones"] = "📍 โซนวาร์ป",
+    ["Prehistoric..."] = "🦖 ยุคก่อนประวัติศาสตร์...",
+    ["Best value"] = "💰 มูลค่าสูงสุด",
+    
+    -- หน้าติดดาว (Favorite)
+    ["FAVORITE"] = "⭐ โปรด",
+    ["Auto favorite"] = "❤️ ติดดาวอัตโนมัติ",
+    ["Match"] = "🎯 เงื่อนไข",
+    ["All picked rules"] = "✅ ตรงตามกฎที่เลือกทั้งหมด",
+    ["Always favorite"] = "🌟 ติดดาวเสมอ",
+    ["Favorite equipped"] = "✨ ติดดาวที่ใส่อยู่",
+    ["Unfavorite pets not matching"] = "💔 ยกเลิกติดดาวสัตว์ที่ไม่ตรงเงื่อนไข",
+
+    -- ==========================================
     -- 🇻🇳 ภาษาเวียดนาม (Vietnam - v1.5.0)
     -- ==========================================
     
@@ -782,7 +767,7 @@ local dict = {
 }
 
 -- ==========================================
--- 2. ระบบเตรียม Dictionary & Cache (Zero-Lag)
+-- 2. PREPARE DICTIONARY (Lowercase)
 -- ==========================================
 local lowerDict = {}
 for key, value in pairs(dict) do
@@ -790,7 +775,7 @@ for key, value in pairs(dict) do
 end
 
 -- ==========================================
--- 2. ฟังก์ชันแปลภาษา (มีตัวกรองตัวเลข K M B T)
+-- 3. TRANSLATE FUNCTIONS (Zero-Lag + Filter)
 -- ==========================================
 local function translateDynamicText(txt)
     local newTxt = txt
@@ -798,6 +783,11 @@ local function translateDynamicText(txt)
     newTxt = newTxt:gsub("^(%d+)%s+eggs", "%1 ไข่")
     newTxt = newTxt:gsub("^(%d+)m%s+(%d+)s", "%1 นาที %2 วินาที")
     newTxt = newTxt:gsub("in (%d+)m", "ในอีก %1 นาที")
+    newTxt = newTxt:gsub("^(%$[%d%.]+[BMTK]?/s)$", "💰 %1")
+    newTxt = newTxt:gsub("^ALL%s+(%d+)", "ทั้งหมด %1")
+    newTxt = newTxt:gsub("^READY%s+(%d+)", "พร้อม %1")
+    newTxt = newTxt:gsub("^GROWING%s+(%d+)", "กำลังโต %1")
+    newTxt = newTxt:gsub("^IN BAG%s+(%d+)", "ในกระเป๋า %1")
     return newTxt
 end
 
@@ -808,7 +798,7 @@ local function translateText(obj)
         local currentText = obj.Text
         if currentText == "" then return end
         
-        -- 🛑 ตัวกรองตัวเลข (K, M, B, T, Q, เงิน, เปอร์เซ็นต์)
+        -- 🛑 ตัวกรองตัวเลข K M B T Q เงิน และ %
         local numberPattern = "^%s*[%$%+%-%xX]*%s*%d+%.?%d*%s*[KMBTQkmbtqiasI%%]*%s*/?%s*[sS]?%s*$"
         if currentText:match(numberPattern) then return end
         
@@ -843,22 +833,20 @@ local function translateText(obj)
 end
 
 -- ==========================================
--- 3. HOOK OBJECT (แบบ Static - ไม่ดักฟัง Real-time)
+-- 4. HOOK OBJECT (Static Mode - ไม่แลค)
 -- ==========================================
 local function hookObject(obj)
-    translateText(obj) -- แปลแค่ครั้งแรกที่เจอ
-    
+    translateText(obj)
     pcall(function()
         if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
         if obj:GetAttribute("Hooked_nookky_") then return end
         obj:SetAttribute("Hooked_nookky_", true)
-        
         -- 🛑 ไม่มี GetPropertyChangedSignal แล้ว! เกมจะไม่แลคเลย
     end)
 end
 
 -- ==========================================
--- 4. SMART LOADER (โหลด UI ก่อน -> รอ -> แปล)
+-- 5. SMART LOADER (โหลด UI ก่อน -> รอ -> แปล)
 -- ==========================================
 task.spawn(function()
     local success, err = pcall(function()
@@ -910,50 +898,30 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- 5. ปุ่มลัด RightShift (กดเพื่อสั่งแปลใหม่)
--- ==========================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        -- กวาดหน้าจอแปลใหม่ทั้งหมด 1 รอบ
-        for _, obj in ipairs(GuiService:GetDescendants()) do
-            translateText(obj)
-        end
-        pcall(function()
-            StarterGui:SetCore("SendNotification", {
-                Title = "🌶️ nookky_",
-                Text = "รีเฟรชการแปล UI เรียบร้อย ✅",
-                Duration = 3
-            })
-        end)
-    end
-end)
-
--- ==========================================
 -- 6. 🎈 ปุ่มลอยสำหรับกดแปลใหม่ (Floating Button)
 -- ==========================================
 local function createTranslateButton()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "nookky_TranslateBtn"
     ScreenGui.ResetOnSpawn = false
-    ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+    ScreenGui.Parent = GuiService
 
     local btn = Instance.new("TextButton")
     btn.Parent = ScreenGui
     btn.Size = UDim2.new(0, 45, 0, 45)
-    btn.Position = UDim2.new(0, 20, 0.5, -25) -- เริ่มต้นที่ขอบซ้ายกลางจอ
+    btn.Position = UDim2.new(0, 20, 0.5, -25)
     btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     btn.BackgroundTransparency = 0.2
-    btn.Text = "🇹🇭" -- ใช้ธงชาติหรือตัวอักษร TH แทน
+    btn.Text = "🇹🇭"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextSize = 20
     btn.Font = Enum.Font.GothamBold
     btn.Active = true
-    btn.Draggable = true -- 🔥 ทำให้ลากย้ายที่ได้!
+    btn.Draggable = true
     btn.BorderSizePixel = 0
     
     local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(1, 0) -- ทำให้เป็นวงกลม
+    UICorner.CornerRadius = UDim.new(1, 0)
     UICorner.Parent = btn
 
     local UIStroke = Instance.new("UIStroke")
@@ -962,13 +930,11 @@ local function createTranslateButton()
     UIStroke.Transparency = 0.5
     UIStroke.Parent = btn
 
-    -- ระบบกดปุ่ม (กันกดรัว)
     local isTranslating = false
     btn.MouseButton1Click:Connect(function()
         if isTranslating then return end
         isTranslating = true
 
-        -- แจ้งเตือนว่ากำลังทำ
         pcall(function()
             StarterGui:SetCore("SendNotification", {
                 Title = "🌶️ nookky_",
@@ -977,7 +943,6 @@ local function createTranslateButton()
             })
         end)
 
-        -- สั่งให้สแกนและแปล UI ทั้งหมดใหม่
         local count = 0
         for _, obj in ipairs(GuiService:GetDescendants()) do
             if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
@@ -986,8 +951,7 @@ local function createTranslateButton()
             end
         end
 
-        -- แจ้งเตือนเมื่อแปลเสร็จ
-        task.wait(0.5) -- หน่วงนิดนึงให้ดูสมจริง
+        task.wait(0.5)
         pcall(function()
             StarterGui:SetCore("SendNotification", {
                 Title = "🌶️ nookky_",
@@ -996,10 +960,9 @@ local function createTranslateButton()
             })
         end)
 
-        task.wait(1.5) -- คูลดาวน์ 2 วินาที
+        task.wait(1.5)
         isTranslating = false
     end)
 end
 
--- เรียกใช้งานฟังก์ชันสร้างปุ่ม
 task.spawn(createTranslateButton)
