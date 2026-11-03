@@ -789,10 +789,8 @@ for key, value in pairs(dict) do
     lowerDict[string.lower(key)] = value
 end
 
-local translationCache = {}
-
 -- ==========================================
--- 3. ฟังก์ชันแปลภาษา (Dynamic & Static)
+-- 2. ฟังก์ชันแปลภาษา (มีตัวกรองตัวเลข K M B T)
 -- ==========================================
 local function translateDynamicText(txt)
     local newTxt = txt
@@ -800,11 +798,6 @@ local function translateDynamicText(txt)
     newTxt = newTxt:gsub("^(%d+)%s+eggs", "%1 ไข่")
     newTxt = newTxt:gsub("^(%d+)m%s+(%d+)s", "%1 นาที %2 วินาที")
     newTxt = newTxt:gsub("in (%d+)m", "ในอีก %1 นาที")
-    newTxt = newTxt:gsub("^(%$[%d%.]+[BMTK]?/s)$", "💰 %1")
-    newTxt = newTxt:gsub("^ALL%s+(%d+)", "ทั้งหมด %1")
-    newTxt = newTxt:gsub("^READY%s+(%d+)", "พร้อม %1")
-    newTxt = newTxt:gsub("^GROWING%s+(%d+)", "กำลังโต %1")
-    newTxt = newTxt:gsub("^IN BAG%s+(%d+)", "ในกระเป๋า %1")
     return newTxt
 end
 
@@ -815,30 +808,24 @@ local function translateText(obj)
         local currentText = obj.Text
         if currentText == "" then return end
         
-        -- 🛑 ตรวจสอบ: ถ้าเป็นภาษาไทยอยู่แล้ว หรือไม่มีตัวอักษรภาษาอังกฤษเลย ให้ข้ามไปเลย! (ลดอาการแลค)
-        if currentText:match("^[ก-๙]") or not currentText:match("[a-zA-Z]") then return end
+        -- 🛑 ตัวกรองตัวเลข (K, M, B, T, Q, เงิน, เปอร์เซ็นต์)
+        local numberPattern = "^%s*[%$%+%-%xX]*%s*%d+%.?%d*%s*[KMBTQkmbtqiasI%%]*%s*/?%s*[sS]?%s*$"
+        if currentText:match(numberPattern) then return end
         
-        -- 🛑 ตรวจสอบ Cache: ถ้าเคยแปลคำนี้แล้ว ให้ใช้ของเดิมเลย ไม่ต้องคำนวณใหม่
-        if translationCache[currentText] then
-            if obj.Text ~= translationCache[currentText] then
-                obj.Text = translationCache[currentText]
-            end
-            return
-        end
+        -- 🛑 ถ้าเป็นภาษาไทยอยู่แล้ว ให้ข้าม
+        if currentText:match("^[ก-๙]") then return end
 
         local dynamicText = translateDynamicText(currentText)
         if dynamicText ~= currentText then
             obj.Text = dynamicText
-            translationCache[currentText] = dynamicText
             currentText = dynamicText
         end
 
         local cleanText = currentText:gsub("<[^>]+>", ""):match("^%s*(.-)%s*$")
         if cleanText then
             local translated = lowerDict[string.lower(cleanText)]
-            if translated and obj.Text ~= translated then
+            if translated then
                 obj.Text = translated
-                translationCache[cleanText] = translated -- บันทึกลง Cache
             end
         end
 
@@ -847,7 +834,7 @@ local function translateText(obj)
             local cleanPlaceholder = placeholder:gsub("<[^>]+>", ""):match("^%s*(.-)%s*$")
             if cleanPlaceholder then
                 local translatedPlaceholder = lowerDict[string.lower(cleanPlaceholder)]
-                if translatedPlaceholder and obj.PlaceholderText ~= translatedPlaceholder then
+                if translatedPlaceholder then
                     obj.PlaceholderText = translatedPlaceholder
                 end
             end
@@ -856,48 +843,32 @@ local function translateText(obj)
 end
 
 -- ==========================================
--- 4. ระบบ Hook Object (ดักจับ UI)
+-- 3. HOOK OBJECT (แบบ Static - ไม่ดักฟัง Real-time)
 -- ==========================================
 local function hookObject(obj)
-    translateText(obj)
+    translateText(obj) -- แปลแค่ครั้งแรกที่เจอ
+    
     pcall(function()
         if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
         if obj:GetAttribute("Hooked_nookky_") then return end
         obj:SetAttribute("Hooked_nookky_", true)
         
-        -- 🛑 ใส่คูลดาวน์ 0.2 วินาที ถ้าตัวเลขเด้งรัวๆ มันจะไม่ยอมแปลถี่เกินไป
-        local lastTime = 0
-        obj:GetPropertyChangedSignal("Text"):Connect(function()
-            if tick() - lastTime > 0.2 then
-                lastTime = tick()
-                translateText(obj)
-            end
-        end)
-        
-        if obj:IsA("TextBox") then
-            obj:GetPropertyChangedSignal("PlaceholderText"):Connect(function()
-                translateText(obj)
-            end)
-        end
+        -- 🛑 ไม่มี GetPropertyChangedSignal แล้ว! เกมจะไม่แลคเลย
     end)
 end
 
 -- ==========================================
--- 5. SMART LOADER (โหลด UI ก่อน -> รอ -> แปล)
+-- 4. SMART LOADER (โหลด UI ก่อน -> รอ -> แปล)
 -- ==========================================
-
--- ขั้นที่ 1: โหลด Chilli Hub แบบปลอดภัย
 task.spawn(function()
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://gist.githubusercontent.com/sourceshubs/6e43ff13469a39993ac1a15ce00fd404/raw/SourcesHub_ChilliHubV8"))()
     end)
     if not success then
-        warn("⚠️ nookky_ แจ้งเตือน: โหลด Chilli Hub ต้นฉบับไม่สำเร็จ (ลิงก์อาจเสียหรือโดนบล็อก)")
-        warn(err)
+        warn("⚠️ nookky_ : โหลด Chilli Hub ต้นฉบับไม่สำเร็จ")
     end
 end)
 
--- ขั้นที่ 2: รอจนกว่า UI หลักจะโผล่ขึ้นมาจริงๆ (สูงสุด 30 วินาที)
 task.spawn(function()
     local timeout = 30
     local elapsed = 0
@@ -912,29 +883,48 @@ task.spawn(function()
                 end
             end
         end
-
         if found then break end
         task.wait(0.5)
         elapsed = elapsed + 0.5
     end
 
-    -- ขั้นที่ 3: เมื่อเจอ UI หรือหมดเวลา ให้เริ่มสแกนและแปลทั้งหมด
+    -- สแกนและแปลครั้งแรก
     for _, obj in ipairs(GuiService:GetDescendants()) do
         hookObject(obj)
     end
 
-    -- ขั้นที่ 4: ดักจับ UI ใหม่ที่จะเกิดขึ้นในอนาคต
+    -- แปลเฉพาะตอนมี UI ใหม่โผล่ขึ้นมา (เช่น กดเปลี่ยนแท็บ)
     GuiService.DescendantAdded:Connect(function(obj)
         task.wait(0.1)
         hookObject(obj)
     end)
     
-    -- ขั้นที่ 5: แจ้งเตือนพร้อมใช้งาน
+    -- แจ้งเตือน
     pcall(function()
         StarterGui:SetCore("SendNotification", {
-            Title = "🌶️ nookky_ (Zero-Lag)",
-            Text = "ระบบแปลภาษาไทยพร้อมใช้งานแล้ว ✅",
+            Title = "🌶️ nookky_ (Static Mode)",
+            Text = "ระบบแปลภาษาไทยพร้อมใช้งาน (ไม่แลค) ✅",
             Duration = 5
         })
     end)
+end)
+
+-- ==========================================
+-- 5. ปุ่มลัด RightShift (กดเพื่อสั่งแปลใหม่)
+-- ==========================================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        -- กวาดหน้าจอแปลใหม่ทั้งหมด 1 รอบ
+        for _, obj in ipairs(GuiService:GetDescendants()) do
+            translateText(obj)
+        end
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
+                Title = "🌶️ nookky_",
+                Text = "รีเฟรชการแปล UI เรียบร้อย ✅",
+                Duration = 3
+            })
+        end)
+    end
 end)
