@@ -928,3 +928,78 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end)
     end
 end)
+
+-- ==========================================
+-- 6. 🎈 ปุ่มลอยสำหรับกดแปลใหม่ (Floating Button)
+-- ==========================================
+local function createTranslateButton()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "nookky_TranslateBtn"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+
+    local btn = Instance.new("TextButton")
+    btn.Parent = ScreenGui
+    btn.Size = UDim2.new(0, 45, 0, 45)
+    btn.Position = UDim2.new(0, 20, 0.5, -25) -- เริ่มต้นที่ขอบซ้ายกลางจอ
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    btn.BackgroundTransparency = 0.2
+    btn.Text = "🇹🇭" -- ใช้ธงชาติหรือตัวอักษร TH แทน
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 20
+    btn.Font = Enum.Font.GothamBold
+    btn.Active = true
+    btn.Draggable = true -- 🔥 ทำให้ลากย้ายที่ได้!
+    btn.BorderSizePixel = 0
+    
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(1, 0) -- ทำให้เป็นวงกลม
+    UICorner.Parent = btn
+
+    local UIStroke = Instance.new("UIStroke")
+    UIStroke.Color = Color3.fromRGB(255, 255, 255)
+    UIStroke.Thickness = 1.5
+    UIStroke.Transparency = 0.5
+    UIStroke.Parent = btn
+
+    -- ระบบกดปุ่ม (กันกดรัว)
+    local isTranslating = false
+    btn.MouseButton1Click:Connect(function()
+        if isTranslating then return end
+        isTranslating = true
+
+        -- แจ้งเตือนว่ากำลังทำ
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
+                Title = "🌶️ nookky_",
+                Text = "กำลังสแกนและแปล UI ใหม่... ⏳",
+                Duration = 2
+            })
+        end)
+
+        -- สั่งให้สแกนและแปล UI ทั้งหมดใหม่
+        local count = 0
+        for _, obj in ipairs(GuiService:GetDescendants()) do
+            if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
+                translateText(obj)
+                count = count + 1
+            end
+        end
+
+        -- แจ้งเตือนเมื่อแปลเสร็จ
+        task.wait(0.5) -- หน่วงนิดนึงให้ดูสมจริง
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
+                Title = "🌶️ nookky_",
+                Text = "แปลภาษาเสร็จสิ้น! (ตรวจสอบ " .. count .. " รายการ) ✅",
+                Duration = 3
+            })
+        end)
+
+        task.wait(1.5) -- คูลดาวน์ 2 วินาที
+        isTranslating = false
+    end)
+end
+
+-- เรียกใช้งานฟังก์ชันสร้างปุ่ม
+task.spawn(createTranslateButton)
