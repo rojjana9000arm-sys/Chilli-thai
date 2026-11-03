@@ -881,10 +881,23 @@ task.spawn(function()
         hookObject(obj)
     end
 
-    -- แปลเฉพาะตอนมี UI ใหม่โผล่ขึ้นมา (เช่น กดเปลี่ยนแท็บ)
+  -- 🛑 [แก้ไขใหม่] ดักจับ Object ใหม่แบบไม่แลค
     GuiService.DescendantAdded:Connect(function(obj)
-        task.wait(0.1)
-        hookObject(obj)
+        -- 1. ถ้า Object ที่โผล่มาใหม่ ไม่ใช่ข้อความ ให้ข้ามไปเลย
+        if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
+        
+        -- 2. ดึงข้อความออกมาดู
+        local txt = obj.Text
+        if txt and txt ~= "" then
+            -- 3. ถ้าข้อความที่โผล่มาใหม่ เป็นตัวเลขล้วนๆ (เช่น +$1.5B) ห้ามแปลเด็ดขาด!
+            local numberPattern = "^%s*[%$%+%-%xX]*%s*%d+%.?%d*%s*[KMBTQkmbtqiasI%%]*%s*/?%s*[sS]?%s*$"
+            if txt:match(numberPattern) then
+                return -- ข้ามไปเลย ไม่ต้องทำอะไร
+            end
+            
+            -- 4. ถ้าไม่ใช่ตัวเลข ค่อยส่งไปแปล
+            hookObject(obj)
+        end
     end)
     
     -- แจ้งเตือน
