@@ -1,13 +1,14 @@
 -- ==========================================
--- 🌶️ Chilli Hub V8 - Thai Translator (Fixed Timing)
+-- 🌶️ Chilli Hub V8 - Ultimate Thai Translator
 -- แปลไทยโดย : nookky_ 👑
+-- Version : 2.0 (Zero-Lag + VN Support + Full Dictionary)
 -- ==========================================
 
-local GuiService = gethui and gethui() or game:GetService("CoreGui")
+local GuiService = (gethui and gethui()) or game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
 
 -- ==========================================
--- 1. DICTIONARY (คำศัพท์ทั้งหมด)
+-- 1. DICTIONARY (คำศัพท์ทั้งหมด - ENG + VN + TH)
 -- ==========================================
 local dict = {
     -- 🏠 เมนูหลัก / Dashboard
@@ -76,7 +77,7 @@ local dict = {
     ["Value"] = "💰 มูลค่า",
     ["Walk"] = "🚶 เดิน",
     
-    -- 🗺️ โซนแผนที่ (จากรูปที่ 2)
+    -- 🗺️ โซนแผนที่ (Map Zones)
     ["Pick any"] = "📍 เลือกทั้งหมด",
     ["Enchanted Forest"] = "🌳 ป่าต้องสาป",
     ["Light Dark"] = "🌓 สว่าง/มืด",
@@ -93,7 +94,7 @@ local dict = {
     ["Select all"] = "✅ เลือกทั้งหมด",
     ["Cosmic"] = "🌌 คอสมิก",
 
-    -- 👽 กิจกรรม UFO (จากรูปที่ 1)
+    -- 👽 กิจกรรม UFO (Event)
     ["Event"] = "🎁 กิจกรรม",
     ["UFO"] = "🛸 UFO",
     ["UFO SIGHTINGS"] = "👽 การพบเห็น UFO",
@@ -110,7 +111,31 @@ local dict = {
     ["The Hollow"] = "🕳️ The Hollow",
     ["Shooting Star"] = "🌠 ดาวตก",
 
-    -- 🎁 Event อื่นๆ
+    -- 🇻🇳 ภาษาเวียดนาม (Vietnam Support)
+    ["Sự kiện"] = "🎁 กิจกรรม",
+    ["sao băng & Vực Hollow"] = "⭐ ดาวตก & The Hollow",
+    ["Bắt Bướm"] = "🦋 จับผีเสื้อ",
+    ["PHÁT HIỆN UFO"] = "👽 การพบเห็น UFO",
+    ["Tự động UFO"] = "👽 UFO อัตโนมัติ",
+    ["nhặt UFO debris"] = "🛸 เก็บเศษซาก UFO",
+    ["Enter Hiếm UFO"] = "🚪 เข้า UFO หายาก",
+    ["Tự động trao đổi debris"] = "🔄 แลกเศษซากอัตโนมัติ",
+    ["UFO TRẠNG THÁI"] = "📋 สถานะ UFO",
+    ["TRỨNG (EGGS)"] = "🥚 ไข่",
+    ["Đột biến"] = "🧬 การกลายพันธุ์",
+    ["TRẠNG THÁI"] = "📋 สถานะ",
+    ["THẮNG"] = "🏆 ชนะ",
+    ["TỐI ƯU: BẬT"] = "🚀 ปรับแต่ง: เปิด",
+    ["Tìm kiếm"] = "🔎 ค้นหา",
+    ["Đang rảnh"] = "🟢 ว่าง/พร้อมใช้งาน",
+    ["Dịch chuyển if far tứ trúng"] = "⚡ วาร์ปไปหาไข่ทันที",
+    ["SAO BĂNG & VỰC HOLLOW"] = "⭐ ดาวตก & The Hollow",
+    ["Vực Hollow"] = "🕳️ The Hollow",
+    ["SAO BĂNG RƠI"] = "🌠 ดาวตก",
+    ["ĐÃ BẮT"] = "✅ จับได้แล้ว",
+    ["Waiting for a star"] = "⏳ กำลังรอดาวตก",
+
+    -- 🎁 Event อื่นๆ (Halloween, Butterfly, AA)
     ["Halloween & Star"] = "🎃 ฮาโลวีน & ดาว",
     ["Butterfly"] = "🦋 ผีเสื้อ",
     ["AA"] = "👑 AA (แอดมิน)",
@@ -372,12 +397,14 @@ local dict = {
 }
 
 -- ==========================================
--- 2. LOWERCASE DICTIONARY
+-- 2. ระบบเตรียม Dictionary & Cache (Zero-Lag)
 -- ==========================================
 local lowerDict = {}
 for key, value in pairs(dict) do
     lowerDict[string.lower(key)] = value
 end
+
+local translationCache = {}
 
 -- ==========================================
 -- 3. ฟังก์ชันแปลภาษา (Dynamic & Static)
@@ -399,20 +426,34 @@ end
 local function translateText(obj)
     pcall(function()
         if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
-
+        
         local currentText = obj.Text
-        local dynamicText = translateDynamicText(currentText)
+        if currentText == "" then return end
+        
+        -- 🛑 ตรวจสอบ: ถ้าเป็นภาษาไทยอยู่แล้ว หรือไม่มีตัวอักษรภาษาอังกฤษเลย ให้ข้ามไปเลย! (ลดอาการแลค)
+        if currentText:match("^[ก-๙]") or not currentText:match("[a-zA-Z]") then return end
+        
+        -- 🛑 ตรวจสอบ Cache: ถ้าเคยแปลคำนี้แล้ว ให้ใช้ของเดิมเลย ไม่ต้องคำนวณใหม่
+        if translationCache[currentText] then
+            if obj.Text ~= translationCache[currentText] then
+                obj.Text = translationCache[currentText]
+            end
+            return
+        end
 
+        local dynamicText = translateDynamicText(currentText)
         if dynamicText ~= currentText then
             obj.Text = dynamicText
+            translationCache[currentText] = dynamicText
             currentText = dynamicText
         end
 
         local cleanText = currentText:gsub("<[^>]+>", ""):match("^%s*(.-)%s*$")
         if cleanText then
             local translated = lowerDict[string.lower(cleanText)]
-            if translated then
+            if translated and obj.Text ~= translated then
                 obj.Text = translated
+                translationCache[cleanText] = translated -- บันทึกลง Cache
             end
         end
 
@@ -421,7 +462,7 @@ local function translateText(obj)
             local cleanPlaceholder = placeholder:gsub("<[^>]+>", ""):match("^%s*(.-)%s*$")
             if cleanPlaceholder then
                 local translatedPlaceholder = lowerDict[string.lower(cleanPlaceholder)]
-                if translatedPlaceholder then
+                if translatedPlaceholder and obj.PlaceholderText ~= translatedPlaceholder then
                     obj.PlaceholderText = translatedPlaceholder
                 end
             end
@@ -429,17 +470,25 @@ local function translateText(obj)
     end)
 end
 
+-- ==========================================
+-- 4. ระบบ Hook Object (ดักจับ UI)
+-- ==========================================
 local function hookObject(obj)
     translateText(obj)
     pcall(function()
         if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
         if obj:GetAttribute("Hooked_nookky_") then return end
-
         obj:SetAttribute("Hooked_nookky_", true)
+        
+        -- 🛑 ใส่คูลดาวน์ 0.2 วินาที ถ้าตัวเลขเด้งรัวๆ มันจะไม่ยอมแปลถี่เกินไป
+        local lastTime = 0
         obj:GetPropertyChangedSignal("Text"):Connect(function()
-            translateText(obj)
+            if tick() - lastTime > 0.2 then
+                lastTime = tick()
+                translateText(obj)
+            end
         end)
-
+        
         if obj:IsA("TextBox") then
             obj:GetPropertyChangedSignal("PlaceholderText"):Connect(function()
                 translateText(obj)
@@ -449,32 +498,58 @@ local function hookObject(obj)
 end
 
 -- ==========================================
--- 4. ลำดับการทำงาน (โหลด UI ก่อน แล้วค่อยแปล)
+-- 5. SMART LOADER (โหลด UI ก่อน -> รอ -> แปล)
 -- ==========================================
 
--- ขั้นแรก: โหลด Chilli Hub ขึ้นมาก่อนเลย
+-- ขั้นที่ 1: โหลด Chilli Hub แบบปลอดภัย
 task.spawn(function()
-    loadstring(game:HttpGet("https://gist.githubusercontent.com/sourceshubs/6e43ff13469a39993ac1a15ce00fd404/raw/SourcesHub_ChilliHubV8"))()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://gist.githubusercontent.com/sourceshubs/6e43ff13469a39993ac1a15ce00fd404/raw/SourcesHub_ChilliHubV8"))()
+    end)
+    if not success then
+        warn("⚠️ nookky_ แจ้งเตือน: โหลด Chilli Hub ต้นฉบับไม่สำเร็จ (ลิงก์อาจเสียหรือโดนบล็อก)")
+        warn(err)
+    end
 end)
 
--- ขั้นที่สอง: รอให้ UI หลักโหลดเสร็จ (ประมาณ 2 วินาที)
-task.wait(2) 
+-- ขั้นที่ 2: รอจนกว่า UI หลักจะโผล่ขึ้นมาจริงๆ (สูงสุด 30 วินาที)
+task.spawn(function()
+    local timeout = 30
+    local elapsed = 0
+    local found = false
 
--- ขั้นที่สาม: สแกน UI ทั้งหมดที่เพิ่งโหลดขึ้นมา แล้วเริ่มดักจับของใหม่
-for _, obj in ipairs(GuiService:GetDescendants()) do
-    hookObject(obj)
-end
+    while elapsed < timeout do
+        for _, obj in ipairs(GuiService:GetDescendants()) do
+            if (obj:IsA("TextLabel") or obj:IsA("TextButton")) then
+                if obj.Text == "Dashboard" or obj.Text == "Chilli Hub" then
+                    found = true
+                    break
+                end
+            end
+        end
 
-GuiService.DescendantAdded:Connect(function(obj)
-    task.wait(0.05)
-    hookObject(obj)
-end)
+        if found then break end
+        task.wait(0.5)
+        elapsed = elapsed + 0.5
+    end
 
--- แจ้งเตือนตอนโหลดเสร็จ
-pcall(function()
-    StarterGui:SetCore("SendNotification", {
-        Title = "🌶️ nookky_",
-        Text = "ระบบแปลภาษาไทยพร้อมใช้งานแล้ว ✅",
-        Duration = 5
-    })
+    -- ขั้นที่ 3: เมื่อเจอ UI หรือหมดเวลา ให้เริ่มสแกนและแปลทั้งหมด
+    for _, obj in ipairs(GuiService:GetDescendants()) do
+        hookObject(obj)
+    end
+
+    -- ขั้นที่ 4: ดักจับ UI ใหม่ที่จะเกิดขึ้นในอนาคต
+    GuiService.DescendantAdded:Connect(function(obj)
+        task.wait(0.1)
+        hookObject(obj)
+    end)
+    
+    -- ขั้นที่ 5: แจ้งเตือนพร้อมใช้งาน
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "🌶️ nookky_ (Zero-Lag)",
+            Text = "ระบบแปลภาษาไทยพร้อมใช้งานแล้ว ✅",
+            Duration = 5
+        })
+    end)
 end)
